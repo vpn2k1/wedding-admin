@@ -1,0 +1,107 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  --paper-wash: linear-gradient(115deg, rgba(255,255,255,.72), rgba(251,244,233,.58) 42%, rgba(95,111,95,.08));
+  --fine-lines: linear-gradient(90deg, rgba(194,160,119,.08) 1px, transparent 1px), linear-gradient(180deg, rgba(194,160,119,.07) 1px, transparent 1px);
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: #fffdf8;
+  color: #2d2320;
+  overflow-x: hidden;
+}
+button, a, input, textarea, select { font: inherit; }
+button, label, a { -webkit-tap-highlight-color: transparent; }
+a { text-decoration: none; }
+img { display: block; }
+::selection { background: #ead1a2; color: #3f2230; }
+
+.luxe-bg {
+  background:
+    var(--paper-wash),
+    var(--fine-lines),
+    linear-gradient(135deg, #fffdf8 0%, #fbf4e9 34%, #f7e6dc 62%, #fff7ed 100%);
+  background-size: auto, 42px 42px, auto;
+}
+
+.deep-bg {
+  background:
+    linear-gradient(115deg, rgba(234,209,162,.12), transparent 38%),
+    linear-gradient(145deg, #2d2320 0%, #3f2230 45%, #5f6f5f 135%);
+}
+
+.paper-card {
+  background-image:
+    linear-gradient(135deg, rgba(255,255,255,.9), rgba(255,250,240,.78)),
+    url('/images/paper-texture.svg');
+}
+
+.gold-line {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(194,160,119,.96), transparent);
+}
+
+.ornament-corners::before,
+.ornament-corners::after {
+  content: '';
+  position: absolute;
+  width: 86px;
+  height: 86px;
+  border-color: rgba(194,160,119,.68);
+  pointer-events: none;
+}
+.ornament-corners::before {
+  left: 1.2rem;
+  top: 1.2rem;
+  border-left: 1px solid;
+  border-top: 1px solid;
+  border-top-left-radius: 2.4rem;
+}
+.ornament-corners::after {
+  right: 1.2rem;
+  bottom: 1.2rem;
+  border-right: 1px solid;
+  border-bottom: 1px solid;
+  border-bottom-right-radius: 2.4rem;
+}
+
+.glass-nav {
+  background: rgba(255,253,248,.84);
+  backdrop-filter: blur(18px);
+  border: 1px solid rgba(255,255,255,.7);
+}
+
+:is(a, button, input, textarea, select):focus-visible {
+  outline: 2px solid rgba(109,47,63,.55);
+  outline-offset: 3px;
+}
+
+.vertical-word {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+}
+
+.photo-mask {
+  clip-path: inset(0 round 2rem 2rem 7rem 2rem);
+}
+
+.album-book {
+  perspective: 1800px;
+}
+
+.album-page-left {
+  transform: rotateY(2deg);
+  transform-origin: right center;
+}
+
+.album-page-right {
+  transform: rotateY(-2deg);
+  transform-origin: left center;
+}

@@ -1,0 +1,24 @@
+{
+  "name": "wedding-admin-app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3001",
+    "build": "next build",
+    "start": "next start -p 3001"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.110.0",
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "autoprefixer": "^10.4.20",
+    "next": "latest",
+    "postcss": "^8.4.49",
+    "react": "latest",
+    "react-dom": "latest",
+    "tailwindcss": "^3.4.17",
+    "typescript": "latest",
+    "zod": "^4.4.3"
+  }
+}
