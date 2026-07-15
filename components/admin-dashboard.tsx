@@ -393,8 +393,8 @@ export function AdminDashboard() {
       <div className="mx-auto max-w-7xl">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-[0.28em] text-dune">Admin</p>
-            <h1 className="font-serif text-4xl text-plum md:text-5xl">Quản lý thiệp cưới</h1>
+            <p className="mb-2 text-xs font-bold uppercase tracking-[0.28em] text-wine">Khu vực quản trị</p>
+            <h1 className="font-serif text-4xl text-ink md:text-5xl">Quản lý thiệp cưới</h1>
           </div>
           <div className="flex flex-wrap gap-3">
             <button
@@ -417,13 +417,13 @@ export function AdminDashboard() {
 
         {(notice || error) && (
           <div className="mb-5">
-            {notice && <p className="rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">{notice}</p>}
+            {notice && <p className="rounded-2xl bg-champagne px-4 py-3 text-sm font-semibold text-ink">{notice}</p>}
             {error && <p className="rounded-2xl bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">{error}</p>}
           </div>
         )}
 
         <div className="grid min-w-0 gap-6 lg:grid-cols-[250px_1fr]">
-          <aside className="rounded-[1.25rem] border border-white/80 bg-white/82 p-3 shadow-card backdrop-blur sm:p-4">
+          <aside className="rounded-[1.25rem] border border-champagne bg-white p-3 shadow-card sm:p-4">
             {[
               ['content', 'Thông tin'],
               ['events', 'Địa chỉ & sự kiện'],
@@ -445,7 +445,7 @@ export function AdminDashboard() {
             ))}
           </aside>
 
-          <section className="min-w-0 rounded-[1.25rem] border border-white/80 bg-white/86 p-4 shadow-card backdrop-blur sm:p-5">
+          <section className="min-w-0 rounded-[1.25rem] border border-champagne bg-white p-4 shadow-card sm:p-5">
             {activePanel === 'content' && (
               <div className="grid gap-4 md:grid-cols-2">
                 <TextField label="Tên cô dâu" value={settings.brideName} onChange={(value) => updateSetting('brideName', value)} />

@@ -9,12 +9,14 @@ type WeddingImageProps = Omit<ImageProps, 'src'> & {
   placeholderClassName?: string;
 };
 
-export function WeddingImage({ src, fallbackSrc, alt, onError, placeholderClassName = 'bg-cream', className, ...props }: WeddingImageProps) {
+export function WeddingImage({ src, fallbackSrc, alt, onError, onLoad, placeholderClassName = 'bg-cream', className, ...props }: WeddingImageProps) {
   const [hasError, setHasError] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
   const imageSrc = (hasError ? fallbackSrc : src) || '';
 
   useEffect(() => {
     setHasError(false);
+    setIsLoaded(false);
   }, [src]);
 
   if (!imageSrc) {
@@ -26,8 +28,14 @@ export function WeddingImage({ src, fallbackSrc, alt, onError, placeholderClassN
       {...props}
       alt={alt}
       src={imageSrc}
-      className={`z-0 ${className || ''}`}
+      unoptimized={props.unoptimized ?? /\.svg(?:\?|$)/i.test(imageSrc)}
+      className={`z-0 transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'} ${className || ''}`}
+      onLoad={(event) => {
+        setIsLoaded(true);
+        onLoad?.(event);
+      }}
       onError={(event) => {
+        setIsLoaded(false);
         if (imageSrc !== fallbackSrc) setHasError(true);
         onError?.(event);
       }}

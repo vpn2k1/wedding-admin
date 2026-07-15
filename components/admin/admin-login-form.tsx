@@ -41,16 +41,16 @@ export function AdminLoginForm() {
   return (
     <main className="min-h-screen luxe-bg px-5 py-10 text-ink">
       <section className="mx-auto flex min-h-[calc(100vh-5rem)] max-w-md items-center">
-        <div className="w-full rounded-[1.5rem] border border-white/80 bg-white/75 p-6 shadow-card backdrop-blur">
-          <p className="mb-2 text-xs font-bold uppercase tracking-[0.28em] text-dune">Admin</p>
-          <h1 className="font-serif text-4xl text-plum">Đăng nhập</h1>
+        <div className="w-full rounded-[1.5rem] border border-champagne bg-white p-6 shadow-card">
+          <p className="mb-2 text-xs font-bold uppercase tracking-[0.28em] text-wine">Khu vực quản trị</p>
+          <h1 className="font-serif text-4xl text-ink">Đăng nhập</h1>
           <p className="mt-3 text-sm leading-6 text-ink/60">
             Tài khoản được cấu hình bằng `ADMIN_USERNAME` và `ADMIN_PASSWORD` trong `.env.local`.
           </p>
 
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
             <label className="block">
-              <span className="mb-2 block text-sm font-semibold text-ink/70">User name</span>
+              <span className="mb-2 block text-sm font-semibold text-ink/70">Tên đăng nhập</span>
               <input
                 value={username}
                 onChange={(event) => setUsername(event.target.value)}
@@ -60,7 +60,7 @@ export function AdminLoginForm() {
             </label>
 
             <label className="block">
-              <span className="mb-2 block text-sm font-semibold text-ink/70">Password</span>
+              <span className="mb-2 block text-sm font-semibold text-ink/70">Mật khẩu</span>
               <input
                 type="password"
                 value={password}
