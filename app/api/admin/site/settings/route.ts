@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { ensureWeddingSite } from '@/lib/supabase/admin';
 import { getFallbackSiteSettings, mapSiteSettings } from '@/lib/supabase/mappers';
 import { siteSettingsSchema } from '@/lib/supabase/settings-schema';
 import { createSupabaseAdminClient } from '@/lib/supabase/server';
@@ -35,7 +36,7 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ success: false, message: 'Supabase admin client hoặc NEXT_PUBLIC_SITE_ID chưa được cấu hình.' }, { status: 503 });
   }
 
-  const parsed = siteSettingsSchema.safeParse(await request.json().catch(() => null));
+  const parsed = siteSettingsSchema.omit({ siteId: true }).safeParse(await request.json().catch(() => null));
 
   if (!parsed.success) {
     return NextResponse.json({ success: false, message: parsed.error.issues[0]?.message || 'Dữ liệu cấu hình không hợp lệ.' }, { status: 400 });
@@ -45,6 +46,12 @@ export async function PUT(request: NextRequest) {
     ...parsed.data,
     siteId,
   };
+
+  const ensureSiteError = await ensureWeddingSite(supabase, siteId);
+
+  if (ensureSiteError) {
+    return NextResponse.json({ success: false, message: ensureSiteError }, { status: 500 });
+  }
 
   const { error: siteError } = await supabase
     .from('wedding_sites')

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { getFallbackSiteSettings } from '@/lib/supabase/mappers';
+import { ensureWeddingSite } from '@/lib/supabase/admin';
 import { createSupabaseAdminClient } from '@/lib/supabase/server';
 
 export const dynamic = 'force-dynamic';
@@ -11,7 +11,7 @@ const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 const metadataSchema = z.object({
   siteId: z.string().uuid(),
-  field: z.enum(['coverImage', 'heroImage', 'brideImage', 'groomImage']),
+  field: z.enum(['coverImage', 'heroImage', 'brideImage', 'groomImage', 'qrImage']),
 });
 
 function logSiteImageUpload(requestId: string, step: string, details?: Record<string, unknown>) {
@@ -67,25 +67,6 @@ async function ensureStorageBucket(supabase: SupabaseAdminClient) {
   }
 
   return null;
-}
-
-async function ensureWeddingSite(supabase: SupabaseAdminClient, siteId: string) {
-  const fallback = getFallbackSiteSettings();
-  const { error } = await supabase
-    .from('wedding_sites')
-    .upsert(
-      {
-        id: siteId,
-        slug: fallback.slug,
-        bride_name: fallback.brideName,
-        groom_name: fallback.groomName,
-        wedding_date: fallback.weddingDate,
-        is_active: true,
-      },
-      { onConflict: 'id' }
-    );
-
-  return error?.message ? getSupabaseSetupMessage(error.message) : null;
 }
 
 export async function POST(request: NextRequest) {
@@ -147,7 +128,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, message: `Không thể chuẩn bị bucket ${BUCKET_NAME}: ${bucketError}` }, { status: 500 });
     }
 
-    const siteError = await ensureWeddingSite(supabase, parsed.data.siteId);
+    const rawSiteError = await ensureWeddingSite(supabase, parsed.data.siteId);
+    const siteError = rawSiteError ? getSupabaseSetupMessage(rawSiteError) : null;
 
     if (siteError) {
       logSiteImageUploadError(requestId, 'site:ensure:failed', siteError, { siteId: parsed.data.siteId });

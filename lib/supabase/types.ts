@@ -29,9 +29,17 @@ export type GuestComment = {
 export type BankQrItem = {
   ownerName: string;
   bankName: string;
+  bankBin?: string;
   accountNumber: string;
   qrImage: string;
   note: string;
+};
+
+export type VietQrBank = {
+  bin: string;
+  code: string;
+  shortName: string;
+  name: string;
 };
 
 export type WeddingSiteSettings = {

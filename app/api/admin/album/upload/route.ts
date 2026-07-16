@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { getFallbackSiteSettings, mapAlbumImage } from '@/lib/supabase/mappers';
+import { ensureWeddingSite } from '@/lib/supabase/admin';
+import { mapAlbumImage } from '@/lib/supabase/mappers';
 import { createSupabaseAdminClient } from '@/lib/supabase/server';
 import type { AlbumImageRow } from '@/lib/supabase/types';
 
@@ -70,25 +71,6 @@ async function ensureStorageBucket(supabase: SupabaseAdminClient) {
   return null;
 }
 
-async function ensureWeddingSite(supabase: SupabaseAdminClient, siteId: string) {
-  const fallback = getFallbackSiteSettings();
-  const { error } = await supabase
-    .from('wedding_sites')
-    .upsert(
-      {
-        id: siteId,
-        slug: fallback.slug,
-        bride_name: fallback.brideName,
-        groom_name: fallback.groomName,
-        wedding_date: fallback.weddingDate,
-        is_active: true,
-      },
-      { onConflict: 'id' }
-    );
-
-  return error?.message ? getSupabaseSetupMessage(error.message) : null;
-}
-
 export async function POST(request: NextRequest) {
   const requestId = crypto.randomUUID();
   logUpload(requestId, 'request:start');
@@ -151,7 +133,8 @@ export async function POST(request: NextRequest) {
     }
 
     logUpload(requestId, 'site:ensure:start', { siteId: parsed.data.siteId });
-    const siteError = await ensureWeddingSite(supabase, parsed.data.siteId);
+    const rawSiteError = await ensureWeddingSite(supabase, parsed.data.siteId);
+    const siteError = rawSiteError ? getSupabaseSetupMessage(rawSiteError) : null;
 
     if (siteError) {
       logUploadError(requestId, 'site:ensure:failed', siteError, { siteId: parsed.data.siteId });

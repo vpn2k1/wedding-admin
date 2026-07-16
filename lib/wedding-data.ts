@@ -129,6 +129,7 @@ export const bankQrList = [
   {
     ownerName: 'Cô dâu',
     bankName: 'Vietcombank',
+    bankBin: '970436',
     accountNumber: '0123456789',
     qrImage: '/images/qr-bride.svg',
     note: 'Cảm ơn bạn đã đến chung vui cùng chúng mình. Món quà của bạn sẽ là kỷ niệm đẹp cho ngày trọng đại này.',
@@ -136,6 +137,7 @@ export const bankQrList = [
   {
     ownerName: 'Chú rể',
     bankName: 'Techcombank',
+    bankBin: '970407',
     accountNumber: '9876543210',
     qrImage: '/images/qr-groom.svg',
     note: 'Cảm ơn bạn đã đến chung vui cùng chúng mình. Món quà của bạn sẽ là kỷ niệm đẹp cho ngày trọng đại này.',

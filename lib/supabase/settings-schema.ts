@@ -13,6 +13,7 @@ export const weddingEventSchema = z.object({
 export const bankQrItemSchema = z.object({
   ownerName: z.string().trim().min(1).max(120),
   bankName: z.string().trim().min(1).max(120),
+  bankBin: z.string().trim().regex(/^\d{6}$/).optional(),
   accountNumber: z.string().trim().min(1).max(80),
   qrImage: z.string().trim().min(1).max(500),
   note: z.string().trim().max(500),

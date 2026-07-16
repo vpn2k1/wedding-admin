@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { WeddingImage } from '@/components/wedding-image';
 import { getFallbackSiteSettings } from '@/lib/supabase/mappers';
-import type { AlbumImage, BankQrItem, WeddingSiteSettings } from '@/lib/supabase/types';
+import type { AlbumImage, BankQrItem, VietQrBank, WeddingSiteSettings } from '@/lib/supabase/types';
 
 type UploadResponse = {
   success: boolean;
@@ -43,6 +43,15 @@ type MutationResponse = {
   warning?: string;
 };
 
+type SiteImageField = keyof Pick<WeddingSiteSettings, 'coverImage' | 'heroImage' | 'brideImage' | 'groomImage'>;
+type UploadImageField = SiteImageField | 'qrImage';
+
+function getVietQrImageUrl(bankBin: string, accountNumber: string) {
+  return /^\d{6}$/.test(bankBin) && /^\d{6,19}$/.test(accountNumber)
+    ? `https://img.vietqr.io/image/${bankBin}-${accountNumber}-compact2.png`
+    : '';
+}
+
 export function AdminDashboard() {
   const router = useRouter();
   const uploadFormRef = useRef<HTMLFormElement | null>(null);
@@ -54,12 +63,13 @@ export function AdminDashboard() {
   const [file, setFile] = useState<File | null>(null);
   const [musicFile, setMusicFile] = useState<File | null>(null);
   const [images, setImages] = useState<AlbumImage[]>([]);
+  const [banks, setBanks] = useState<VietQrBank[]>([]);
   const [isLoadingSettings, setIsLoadingSettings] = useState(true);
   const [isLoadingImages, setIsLoadingImages] = useState(false);
   const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isUploadingMusic, setIsUploadingMusic] = useState(false);
-  const [uploadingImageField, setUploadingImageField] = useState<keyof Pick<WeddingSiteSettings, 'coverImage' | 'heroImage' | 'brideImage' | 'groomImage'> | null>(null);
+  const [uploadingImageField, setUploadingImageField] = useState<UploadImageField | `qrImage-${number}` | null>(null);
   const [isUpdatingAlbum, setIsUpdatingAlbum] = useState(false);
   const [replacingImageId, setReplacingImageId] = useState<string | null>(null);
   const [notice, setNotice] = useState('');
@@ -92,9 +102,16 @@ export function AdminDashboard() {
     }
   };
 
+  const loadBanks = async () => {
+    const response = await fetch('/api/admin/banks');
+    const data = (await response.json()) as { banks?: VietQrBank[] };
+    setBanks(data.banks || []);
+  };
+
   useEffect(() => {
     loadSettings().catch(() => undefined);
     loadImages();
+    loadBanks().catch(() => setBanks([]));
   }, []);
 
   const saveSettings = async () => {
@@ -193,8 +210,8 @@ export function AdminDashboard() {
     }
   };
 
-  const uploadSiteImage = async (field: keyof Pick<WeddingSiteSettings, 'coverImage' | 'heroImage' | 'brideImage' | 'groomImage'>, fileToUpload: File) => {
-    setUploadingImageField(field);
+  const uploadSiteImage = async (field: UploadImageField, fileToUpload: File, qrIndex?: number) => {
+    setUploadingImageField(qrIndex === undefined ? field : `qrImage-${qrIndex}`);
     setNotice('');
     setError('');
 
@@ -213,7 +230,11 @@ export function AdminDashboard() {
         throw new Error(data.message || 'Không thể upload ảnh lúc này.');
       }
 
-      setSettings((current) => ({ ...current, [field]: data.imageUrl as string }));
+      if (field === 'qrImage' && qrIndex !== undefined) {
+        updateQrItem(qrIndex, { qrImage: data.imageUrl });
+      } else if (field !== 'qrImage') {
+        setSettings((current) => ({ ...current, [field]: data.imageUrl as string }));
+      }
       setNotice('Đã upload ảnh. Bấm "Lưu thay đổi" để lưu ảnh này vào cấu hình chung.');
     } catch (uploadError) {
       setError(uploadError instanceof Error ? uploadError.message : 'Không thể upload ảnh lúc này.');
@@ -352,10 +373,10 @@ export function AdminDashboard() {
     }));
   };
 
-  const updateQrItem = (index: number, key: keyof BankQrItem, value: string) => {
+  const updateQrItem = (index: number, changes: Partial<BankQrItem>) => {
     setSettings((current) => ({
       ...current,
-      qrItems: current.qrItems.map((item, itemIndex) => (itemIndex === index ? { ...item, [key]: value } : item)),
+      qrItems: current.qrItems.map((item, itemIndex) => (itemIndex === index ? { ...item, ...changes } : item)),
     }));
   };
 
@@ -367,6 +388,7 @@ export function AdminDashboard() {
         {
           ownerName: 'Người nhận',
           bankName: '',
+          bankBin: undefined,
           accountNumber: '',
           qrImage: '/images/qr-bride.svg',
           note: '',
@@ -572,11 +594,57 @@ export function AdminDashboard() {
                       )}
                     </div>
                     <div className="grid gap-4 md:grid-cols-2">
-                      <TextField label="Tên người nhận" value={item.ownerName} onChange={(value) => updateQrItem(index, 'ownerName', value)} />
-                      <TextField label="Tên ngân hàng" value={item.bankName} onChange={(value) => updateQrItem(index, 'bankName', value)} />
-                      <TextField label="Số tài khoản" value={item.accountNumber} onChange={(value) => updateQrItem(index, 'accountNumber', value)} />
-                      <TextField label="Đường dẫn ảnh QR" value={item.qrImage} onChange={(value) => updateQrItem(index, 'qrImage', value)} />
-                      <TextArea label="Nội dung/ghi chú" value={item.note} onChange={(value) => updateQrItem(index, 'note', value)} />
+                      <TextField label="Tên người nhận" value={item.ownerName} onChange={(value) => updateQrItem(index, { ownerName: value })} />
+                      <label className="block">
+                        <span className="mb-2 block text-sm font-semibold text-ink/70">Ngân hàng</span>
+                        <select
+                          value={item.bankBin || banks.find((bank) => [bank.shortName, bank.code, bank.name].includes(item.bankName))?.bin || ''}
+                          onChange={(event) => {
+                            const bank = banks.find((candidate) => candidate.bin === event.target.value);
+                            if (bank) updateQrItem(index, {
+                              bankBin: bank.bin,
+                              bankName: bank.shortName,
+                              qrImage: getVietQrImageUrl(bank.bin, item.accountNumber),
+                            });
+                          }}
+                          className="w-full rounded-2xl border border-champagne bg-white px-4 py-3 outline-none transition focus:border-dune"
+                        >
+                          <option value="">Chọn ngân hàng</option>
+                          {banks.map((bank) => <option key={bank.bin} value={bank.bin}>{bank.shortName} — {bank.code}</option>)}
+                        </select>
+                      </label>
+                      <TextField
+                        label="Số tài khoản"
+                        value={item.accountNumber}
+                        onChange={(value) => {
+                          const accountNumber = value.replace(/\D/g, '').slice(0, 19);
+                          const bankBin = item.bankBin || banks.find((bank) => [bank.shortName, bank.code, bank.name].includes(item.bankName))?.bin || '';
+                          updateQrItem(index, { accountNumber, bankBin: bankBin || undefined, qrImage: getVietQrImageUrl(bankBin, accountNumber) });
+                        }}
+                      />
+                      <div>
+                        <TextField label="Đường dẫn ảnh QR" value={item.qrImage} onChange={(value) => updateQrItem(index, { qrImage: value })} />
+                        <div className="mt-3 flex items-center gap-3">
+                          <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-xl border border-champagne bg-white">
+                            <WeddingImage src={item.qrImage} alt={`QR ${item.ownerName}`} fill sizes="96px" className="object-contain p-2" />
+                          </div>
+                          <label className="cursor-pointer rounded-full bg-wine px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-white transition hover:bg-[#5e3030]">
+                            {uploadingImageField === `qrImage-${index}` ? 'Đang upload...' : 'Thay ảnh QR'}
+                            <input
+                              type="file"
+                              accept="image/jpeg,image/png,image/webp"
+                              disabled={uploadingImageField === `qrImage-${index}`}
+                              onChange={(event) => {
+                                const selectedFile = event.target.files?.[0];
+                                event.target.value = '';
+                                if (selectedFile) uploadSiteImage('qrImage', selectedFile, index);
+                              }}
+                              className="hidden"
+                            />
+                          </label>
+                        </div>
+                      </div>
+                      <TextArea label="Nội dung/ghi chú" value={item.note} onChange={(value) => updateQrItem(index, { note: value })} />
                     </div>
                   </div>
                 ))}
